@@ -1,0 +1,21 @@
+.essays{
+  width: 60%;
+  margin: auto;
+  margin: 0;
+  padding: 20px 20% 20px 20%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  -ms-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+  font-size: 21px;
+  font-family: 'Neucha';
+  z-index: 2;
+  background-color: white;
+}
+
+.button {
+  text-decoration: underline;
+  color: blue;
+  /* display: inline; */
+}
