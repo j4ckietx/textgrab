@@ -44,6 +44,26 @@ function getRandomColor() {
   return color;
 }
 
+function getLightColor(){
+  var r = range (150, 255)
+  var g = range (150, 255)
+  var b = range (150, 255)
+  var color = {r,g,b}
+  return color
+}
+
+function isLight(color) {
+  return color.r >= 150
+}
+
+function getDarkColor(){
+  var r = range (0, 100)
+  var g = range (0, 100)
+  var b = range (0, 100)
+  var color = {r,g,b}
+  return color
+}
+
 function hexToRgb(hex) {
   var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   return result ? {
@@ -54,18 +74,42 @@ function hexToRgb(hex) {
 }
 
 function setBoxColors(box) {
-  var hex = getRandomColor();
-  var rgb = hexToRgb(hex);
+  // var hex = getRandomColor();
+  // var rgb = hexToRgb(hex);
+  var rgb = getLightColor()
   var colorR = rgb.r;
   var colorG = rgb.g;
   var colorB = rgb.b;
-  var color = "rgb(" + colorR + "," + colorG + "," + colorB + ")"
+  var color = "rgb("+colorR+","+colorG+","+colorB+")"
   box.style.backgroundColor = color;
   if ((colorR * 0.299 + colorG * 0.587 + colorB * 0.114) > 150) {
     box.style.color = "#000000";
   } else {
     box.style.color = "#FFFFFF";
   }
+  return rgb;
+}
+
+function getTextColor(color){
+  var textColor
+  if ((color.r * 0.299 + color.g * 0.587 + color.b * 0.114) > 150) {
+    textColor = "#000000";
+  } else {
+    textColor = "#FFFFFF";
+  }
+  return textColor;
+}
+
+function formatColor (object){
+  var string = "rgb(" + object.r + "," + object.g + "," + object.b + ")"
+  return string
+}
+
+function invertColor(rgb){
+  var r = 255 - rgb.r;
+  var g = 255 - rgb.g;
+  var b = 255 - rgb.b;
+  return {r,g,b};
 }
 
 function isJsonBorked(json, word) {
@@ -97,42 +141,67 @@ function addSpan(element, location) {
     + words.slice(location+1, words.length).join(" ");
 
   var span = element.getElementsByTagName("span")[0];
-  span.style.backgroundColor =  "yellow";
+  span.style.backgroundColor = "yellow";
   return span;
 }
 
 function createAndStyleBox(textContent) {
-  var topBoxHeight = (window.innerHeight - essayBox.clientHeight - 40) / 4;
   var box1 = document.createElement("DIV");
 
-  var x = Math.round(range(0, 7));
-  var y = Math.round(range(0, 1));
+  var columns = 6
+  var rows = 2
+  var numberOfSlots = columns * rows
+
+  var x = Math.round(range(0, columns-1));
+  var y = Math.round(range(0, rows-1));
 
   while (slotTakenObject[x + "," + y]) {
-    x = Math.round(range(0, 7));
-    y = Math.round(range(0, 1));
+    x = Math.round(range(0, columns-1));
+    y = Math.round(range(0, rows-1));
   }
 
   slotTakenObject[x + "," + y] = true
 
   console.log(Object.keys(slotTakenObject).length)
-  if (Object.keys(slotTakenObject).length == 16) {
+  if (Object.keys(slotTakenObject).length == numberOfSlots) {
     slotTakenObject = {}
+    var lines = Array.from(document.getElementsByClassName("lineDiv"));
+    for (var i=0; i<lines.length; i++){
+      var lineDiv = lines[i];
+      lineDiv.parentNode.removeChild(lineDiv);
+    }
+    var dim = document.createElement("div");
+    document.body.appendChild(dim);
+    dim.style.position = "fixed";
+    dim.style.left = 0;
+    dim.style.top = 0;
+    dim.style.margin = "0";
+    dim.style.padding = "0";
+    dim.style.width = "100%";
+    dim.style.height = (window.innerHeight - essayBox.clientHeight - 40) / 2 + "px";
+    dim.style.backgroundColor = "rgba(255, 255, 255, 0.8)";
   }
 
   document.body.appendChild(box1);
+  var padLR = 1; // % each side (left right)
+  var padTB = 10; // px each side (top bottom)
   box1.textContent = textContent
   box1.style.position = "fixed";
-  box1.style.padding = "10px 1% 10px 1%";
-  setBoxColors(box1)
-  box1.style.fontSize = "12px";
-  box1.style.width = "10.5%";
-  box1.style.height = topBoxHeight - 20 + "px";
+  box1.style.padding = padTB + "px " + padLR + "% " + padTB + "px " + padLR + "%";
+  var rgb = setBoxColors(box1);
+  // var irgb = invertColor(rgb);
+  // var irgb = getDarkColor();
+  var topHeight = (window.innerHeight - essayBox.clientHeight - 40) / 2; // white space above essaybox
+  var width = (100 / columns) - (padLR * 2);
+  var height = (topHeight / rows) - (padTB * 2);
+  box1.style.fontSize = "13px";
+  box1.style.width = width + "%";
+  box1.style.height = height + "px";
   box1.style.overflow = "scroll";
-  box1.style.left = x * 12.5 + "%";
-  box1.style.top = y * topBoxHeight + "px";
+  box1.style.left = x * (width + padLR*2) + "%";
+  box1.style.top = y * (height + padTB*2) + "px";
 
-  return box1
+  return box1;
 }
 
 function chopParagraph(paragraph) {
@@ -161,6 +230,7 @@ function drawLine(x1, y1, x2, y2) {
   var slopeR = Math.atan2(y1 - y2, x1 - x2);
   var slopeD = (slopeR * 180) / Math.PI;
   var line = document.createElement("div");
+  line.className = "lineDiv";
   document.body.appendChild(line);
   line.style.position = "fixed";
   // debugger;
@@ -169,8 +239,8 @@ function drawLine(x1, y1, x2, y2) {
   line.style.left = (xMid - (distance / 2)) + "px";
   line.style.top = yMid + "px";
   line.style.transform = "rotate(" + slopeD + "deg)";
-  line.style.backgroundColor = "green";
-  line.style.zIndex = "4";
+  line.style.zIndex = "2";
+  return line;
 }
 
 function isParagraphBorked(paragraph) {
@@ -213,12 +283,12 @@ function isParagraphBorked(paragraph) {
 //     to.top);
 // }
 
-function loadNextPage(lastBox) {
+function loadNextPage(lastBox, lastBoxColor) {
   var word
   var urlToLoad
   var selection = randomlySelectAWordsLocation(lastBox);
   var words = lastBox.textContent.split(" ")
-  addSpan(lastBox, selection)
+  var span = addSpan(lastBox, selection)
   word = chopItOff(words[selection])
   // console.log("word = " + word)
   urlToLoad = `https://api.allorigins.win/get?url=${encodeURIComponent('https://en.wikipedia.org/wiki/'+word)}`
@@ -233,27 +303,35 @@ function loadNextPage(lastBox) {
     })
     .then(json => {
       if (isJsonBorked(json, word)) {
-        loadNextPage(lastBox);
+        loadNextPage(lastBox,lastBoxColor);
       } else {
         var paragraph = getParagraphFromJson(json)
         if (isParagraphBorked(paragraph)) {
-          loadNextPage(lastBox);
+          loadNextPage(lastBox,lastBoxColor);
         } else {
           var shortText = chopParagraph(paragraph)
           var box1 = createAndStyleBox(shortText)
-          var from = lastBox.getBoundingClientRect()
+          // var wordColor = "rgb(" + irgb.r + "," + irgb.g + "," + irgb.b + ")"
+          // console.log(wordColor);
+          var spanColor = isLight(lastBoxColor)? getDarkColor(): getLightColor();
+          span.style.backgroundColor = formatColor(spanColor);
+          span.style.color = getTextColor(spanColor);
+          var from = span.getBoundingClientRect()
           var to = box1.getBoundingClientRect()
-          drawLine(from.left, from.top, to.left, to.top);
+          var line = drawLine(from.left, from.top, to.left, to.top);
+          line.style.backgroundColor = formatColor(spanColor);
+          box1.style.backgroundColor = formatColor(spanColor);
+          box1.style.color = getTextColor(spanColor);
           // remember the last word, so we don't repeat it
           // its a global variable
           lastWord = word;
           setTimeout(function() {
-            loadNextPage(box1)
-          }, 5000)
+            loadNextPage(box1,spanColor)
+          }, 2000)
         }
       }
     });
 }
 
 var essayBox = document.getElementById("essays");
-loadNextPage(essayBox)
+loadNextPage(essayBox, {r:255, g:255, b:255})
