@@ -44,11 +44,11 @@ function getRandomColor() {
   return color;
 }
 
-function getLightColor(){
-  var r = range (150, 255)
-  var g = range (150, 255)
-  var b = range (150, 255)
-  var color = {r,g,b}
+function getLightColor() {
+  var r = range(150, 255)
+  var g = range(150, 255)
+  var b = range(150, 255)
+  var color = { r, g, b }
   return color
 }
 
@@ -56,11 +56,11 @@ function isLight(color) {
   return color.r >= 150
 }
 
-function getDarkColor(){
-  var r = range (0, 100)
-  var g = range (0, 100)
-  var b = range (0, 100)
-  var color = {r,g,b}
+function getDarkColor() {
+  var r = range(0, 100)
+  var g = range(0, 100)
+  var b = range(0, 100)
+  var color = { r, g, b }
   return color
 }
 
@@ -80,7 +80,7 @@ function setBoxColors(box) {
   var colorR = rgb.r;
   var colorG = rgb.g;
   var colorB = rgb.b;
-  var color = "rgb("+colorR+","+colorG+","+colorB+")"
+  var color = "rgb(" + colorR + "," + colorG + "," + colorB + ")"
   box.style.backgroundColor = color;
   if ((colorR * 0.299 + colorG * 0.587 + colorB * 0.114) > 150) {
     box.style.color = "#000000";
@@ -90,7 +90,7 @@ function setBoxColors(box) {
   return rgb;
 }
 
-function getTextColor(color){
+function getTextColor(color) {
   var textColor
   if ((color.r * 0.299 + color.g * 0.587 + color.b * 0.114) > 150) {
     textColor = "#000000";
@@ -100,16 +100,16 @@ function getTextColor(color){
   return textColor;
 }
 
-function formatColor (object){
+function formatColor(object) {
   var string = "rgb(" + object.r + "," + object.g + "," + object.b + ")"
   return string
 }
 
-function invertColor(rgb){
+function invertColor(rgb) {
   var r = 255 - rgb.r;
   var g = 255 - rgb.g;
   var b = 255 - rgb.b;
-  return {r,g,b};
+  return { r, g, b };
 }
 
 function isJsonBorked(json, word) {
@@ -138,7 +138,7 @@ function addSpan(element, location) {
   element.innerHTML =
     words.slice(0, location).join(" ")
     + word
-    + words.slice(location+1, words.length).join(" ");
+    + words.slice(location + 1, words.length).join(" ");
 
   var span = element.getElementsByTagName("span")[0];
   span.style.backgroundColor = "yellow";
@@ -152,12 +152,12 @@ function createAndStyleBox(textContent) {
   var rows = 2
   var numberOfSlots = columns * rows
 
-  var x = Math.round(range(0, columns-1));
-  var y = Math.round(range(0, rows-1));
+  var x = Math.round(range(0, columns - 1));
+  var y = Math.round(range(0, rows - 1));
 
   while (slotTakenObject[x + "," + y]) {
-    x = Math.round(range(0, columns-1));
-    y = Math.round(range(0, rows-1));
+    x = Math.round(range(0, columns - 1));
+    y = Math.round(range(0, rows - 1));
   }
 
   slotTakenObject[x + "," + y] = true
@@ -166,7 +166,7 @@ function createAndStyleBox(textContent) {
   if (Object.keys(slotTakenObject).length == numberOfSlots) {
     slotTakenObject = {}
     var lines = Array.from(document.getElementsByClassName("lineDiv"));
-    for (var i=0; i<lines.length; i++){
+    for (var i = 0; i < lines.length; i++) {
       var lineDiv = lines[i];
       lineDiv.parentNode.removeChild(lineDiv);
     }
@@ -198,8 +198,8 @@ function createAndStyleBox(textContent) {
   box1.style.width = width + "%";
   box1.style.height = height + "px";
   box1.style.overflow = "scroll";
-  box1.style.left = x * (width + padLR*2) + "%";
-  box1.style.top = y * (height + padTB*2) + "px";
+  box1.style.left = x * (width + padLR * 2) + "%";
+  box1.style.top = y * (height + padTB * 2) + "px";
 
   return box1;
 }
@@ -242,6 +242,31 @@ function drawLine(x1, y1, x2, y2) {
   line.style.zIndex = "2";
   return line;
 }
+
+function animateLine(x1, y1, x2, y2, frames, totalTime, color, box1) {
+  function drawFrame(frameCount) {
+    var ratio = (1 / frames) * frameCount
+    var line = drawLine(
+      x1,
+      y1,
+      x1 + (x2 - x1) * ratio,
+      y1 + (y2 - y1) * ratio)
+    line.style.backgroundColor = formatColor(color);
+
+    if (frameCount < frames) {
+      setTimeout(function () {
+        drawFrame(frameCount + 1)
+      }, totalTime / frames)
+    }
+    if (frameCount == frames) {
+      box1.style.backgroundColor = formatColor(color);
+      box1.style.color = getTextColor(color);
+    }
+  }
+  drawFrame(0)
+}
+
+// animateLine(0, 100, 100, 100, 100, 1000)
 
 function isParagraphBorked(paragraph) {
   if (paragraph.split(" ").length < 50) {
@@ -291,7 +316,7 @@ function loadNextPage(lastBox, lastBoxColor) {
   var span = addSpan(lastBox, selection)
   word = chopItOff(words[selection])
   // console.log("word = " + word)
-  urlToLoad = `https://api.allorigins.win/get?url=${encodeURIComponent('https://en.wikipedia.org/wiki/'+word)}`
+  urlToLoad = `https://api.allorigins.win/get?url=${encodeURIComponent('https://en.wikipedia.org/wiki/' + word)}`
 
   fetch(urlToLoad)
     .then(response => {
@@ -303,30 +328,33 @@ function loadNextPage(lastBox, lastBoxColor) {
     })
     .then(json => {
       if (isJsonBorked(json, word)) {
-        loadNextPage(lastBox,lastBoxColor);
+        loadNextPage(lastBox, lastBoxColor);
       } else {
         var paragraph = getParagraphFromJson(json)
         if (isParagraphBorked(paragraph)) {
-          loadNextPage(lastBox,lastBoxColor);
+          loadNextPage(lastBox, lastBoxColor);
         } else {
           var shortText = chopParagraph(paragraph)
           var box1 = createAndStyleBox(shortText)
+          box1.style.color = "rgba(255,255,255,0)"
+          box1.style.backgroundColor = "rgba(255,255,255,0)"
+
           // var wordColor = "rgb(" + irgb.r + "," + irgb.g + "," + irgb.b + ")"
           // console.log(wordColor);
-          var spanColor = isLight(lastBoxColor)? getDarkColor(): getLightColor();
+          var spanColor = isLight(lastBoxColor) ? getDarkColor() : getLightColor();
           span.style.backgroundColor = formatColor(spanColor);
           span.style.color = getTextColor(spanColor);
           var from = span.getBoundingClientRect()
           var to = box1.getBoundingClientRect()
-          var line = drawLine(from.left, from.top, to.left, to.top);
-          line.style.backgroundColor = formatColor(spanColor);
-          box1.style.backgroundColor = formatColor(spanColor);
-          box1.style.color = getTextColor(spanColor);
+          animateLine(from.left, from.top, to.left, to.top, 48, 1000, spanColor, box1);
+          // line.style.backgroundColor = formatColor(spanColor);
+          // box1.style.backgroundColor = formatColor(spanColor);
+          // box1.style.color = getTextColor(spanColor);
           // remember the last word, so we don't repeat it
           // its a global variable
           lastWord = word;
-          setTimeout(function() {
-            loadNextPage(box1,spanColor)
+          setTimeout(function () {
+            loadNextPage(box1, spanColor)
           }, 2000)
         }
       }
@@ -334,4 +362,4 @@ function loadNextPage(lastBox, lastBoxColor) {
 }
 
 var essayBox = document.getElementById("essays");
-loadNextPage(essayBox, {r:255, g:255, b:255})
+loadNextPage(essayBox, { r: 255, g: 255, b: 255 })
